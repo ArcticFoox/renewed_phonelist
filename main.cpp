@@ -2,6 +2,7 @@
 #include<list>
 #include<vector>
 #include<algorithm>
+#include<fstream>
 using namespace std;
 
 struct Phone{
@@ -11,14 +12,6 @@ struct Phone{
 
 bool compare(const Phone &a, const Phone &b){
     return a.name < b.name;
-}
-
-void save(){
-
-}
-
-void load(){
-
 }
 
 void Phone_add(list<Phone>& phonebook, string name, string phone_num){
@@ -61,7 +54,7 @@ void Phone_modify(list<Phone>& phonebook, string name){
         cin >> write;
         c_it[who - 1]->phone_num = write;
     }
-    else{
+    else if(which == 3){
         return;
     }
     
@@ -90,6 +83,9 @@ void Phone_list(list<Phone>& phonebook){
     list<Phone>::iterator it;
 
     for(it = phonebook.begin(); it != phonebook.end(); it++){
+        if(it->name == ""){
+            continue;
+        }
         cout << it->name << it->phone_num << "\n";
     }
 }
@@ -103,15 +99,62 @@ void Phone_serach(list<Phone>& phonebook, string name){
     }
 }
 
+void save(list<Phone>& phonebook){
+    ofstream writeFile;
+    list<Phone>::iterator it;
+    writeFile.open("Phonelist.txt");
+    writeFile.clear();
+
+    for(it = phonebook.begin(); it != phonebook.end(); it++){
+        // 인자가 없는데 입력받는 경우 대비
+        if(it->name == ""){
+            continue;
+        }
+
+        writeFile.write(it->name.c_str(), it->name.size());
+        writeFile.write(" ", 1);
+        writeFile.write(it->phone_num.c_str(), it->phone_num.size());
+        writeFile.write("\n", 1);
+    }
+    writeFile.close();
+}
+
+void load(list<Phone>& phonebook){
+    ifstream readfromFile;
+    list<Phone>::iterator it;
+    readfromFile.open("Phonelist.txt");
+    // 불러올 파일이 있을 시 시행
+    if(readfromFile.is_open()){
+        while(!readfromFile.eof()){
+            string str1, str2;
+
+            readfromFile >> str1;
+            readfromFile >> str2;
+
+            Phone_add(phonebook, str1, str2);
+        }
+        readfromFile.close();
+    }
+}
+
 int main(){
     list<Phone> phonebook;
     string name;
     string phonenum;
+    load(phonebook);
     bool it = true;
     while(it){
         int button;
         cout << "add 1, modify 2, remove 3, list 4, search 5, escape 6" << "\n";
         cin >> button;
+        // button에 문자 등 다른 것이 들어갔을 경우 대비
+        if(!cin){
+            cout << "wrong button try again" << "\n";
+            cin.clear();
+            cin.ignore(256, '\n');
+            continue;
+        }
+
         switch(button){
             case 1:
                 cout << "Enter name and phonenumber\n";
@@ -143,6 +186,7 @@ int main(){
                 cout << "wrong button try again" << "\n";
                 break; 
         }
+        save(phonebook);
     }
 
     return 0;
